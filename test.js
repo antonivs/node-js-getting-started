@@ -35,7 +35,7 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   const fzeOrchUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
   test('uat environment sanity check', { timeout: 2000 }, (t) => {
-    t.plan(2);
+    t.plan(3);
 
     // TODO: assertions to check id & key
 
@@ -47,7 +47,7 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
         // DEBUG
         // t.ok(result, JSON.stringify(result));
 
-        t.equal(result.status[0], "success", "Deployment launched");
+        t.equal(result.response.status[0], "success", "Deployment launched");
         const fzeRunId = result.response.data[1].run_id[0];
         const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployUd }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
 
