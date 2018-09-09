@@ -29,10 +29,10 @@ test('responds to requests', (t) => {
 });
 
 if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
-  uatAppUrl = process.env.HEROKU_UAT_APP_WEB_URL;
-  fzeDeployId = process.env.FZE_DEPLOYMENT_ID;
-  fzeApiKey = process.env.FZE_API_KEY;
-  fzeOrchUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
+  const uatAppUrl = process.env.HEROKU_UAT_APP_WEB_URL;
+  const fzeDeployId = process.env.FZE_DEPLOYMENT_ID;
+  const fzeApiKey = process.env.FZE_API_KEY;
+  const fzeOrchUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
   test('uat environment sanity check', { timeout: 2000 }, (t) => {
     t.plan(2);
@@ -43,7 +43,20 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
 
     request(fzeOrchUrl, function(error, response, body) {
       parseXml(body, function(err, result) {
-        t.ok(result, JSON.stringify(result));
+
+        // DEBUG
+        // t.ok(result, JSON.stringify(result));
+
+        t.equal(result.status[0], "success", "Deployment launched");
+        const fzeRunId = result.response.data[1].run_id[0];
+        const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployUd }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
+
+        request(fzeStatusUrl, function(error, response, body) {
+            parseXml(body, function(statusErr, statusResult) {
+              t.ok(statusResult, JSON.stringify(statusResult));
+              // t.equal(statusResult.status[0], "success", "Deployment ");
+            });
+        });
       });
     });
   });
