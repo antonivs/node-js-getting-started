@@ -49,7 +49,7 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
 
         t.equal(result.response.status[0], "success", "Deployment launched");
         const fzeRunId = result.response.data[1].run_id[0];
-        const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployUd }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
+        const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
 
         request(fzeStatusUrl, function(error, response, body) {
             parseXml(body, function(statusErr, statusResult) {
