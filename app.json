@@ -1,9 +1,9 @@
 {
   "name": "Start on Heroku: Node.js",
-  "description": "A barebones Node.js app using Express 4",
+  "description": "Functionize UAT example",
   "repository": "https://github.com/heroku/node-js-getting-started",
-  "logo": "https://cdn.rawgit.com/heroku/node-js-getting-started/master/public/node.svg",
-  "keywords": ["node", "express", "heroku"],
+  "logo": "https://fnizeprod.wpengine.com/wp-content/uploads/2017/11/logo.png",
+  "keywords": ["heroku", "functionize", "node", "express"],
   "image": "heroku/nodejs",
 
   "environments": {
