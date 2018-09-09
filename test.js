@@ -34,7 +34,7 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   fzeApiKey = process.env.FZE_API_KEY;
   fzeOrchUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
-  test('uat environment sanity check', { timeout = 2000 }, (t) => {
+  test('uat environment sanity check', { timeout: 2000 }, (t) => {
     t.plan(2);
 
     // TODO: assertions to check id & key
