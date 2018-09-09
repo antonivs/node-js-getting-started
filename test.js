@@ -43,7 +43,7 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
 
     request(fzeOrchUrl, function(error, response, body) {
       parseXml(body, function(err, result) {
-        t.ok(result, result); 
+        t.ok(result, JSON.stringify(result));
       });
     });
   });
