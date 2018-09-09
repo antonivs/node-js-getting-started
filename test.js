@@ -30,7 +30,9 @@ test('responds to requests', (t) => {
 if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   uatUrl = process.env.HEROKU_UAT_APP_WEB_URL;
   test('uat environment sanity check', (t) => {
-    console.log(`UAT URL: ${ uatUrl }!`);
+    t.plan(1);
+
+    t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatUrl }`);
   });
 }
 
