@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const request = require('request');
 const test = require('tape');
+const parseXml = require('xml2js').parseString;
 
 // Start the app
 const env = Object.assign({}, process.env, {PORT: 5000});
@@ -28,11 +29,23 @@ test('responds to requests', (t) => {
 });
 
 if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
-  uatUrl = process.env.HEROKU_UAT_APP_WEB_URL;
-  test('uat environment sanity check', (t) => {
-    t.plan(1);
+  uatAppUrl = process.env.HEROKU_UAT_APP_WEB_URL;
+  fzeDeployId = process.env.FZE_DEPLOYMENT_ID;
+  fzeApiKey = process.env.FZE_API_KEY;
+  fzeOrchUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
-    t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatUrl }`);
+  test('uat environment sanity check', { timeout = 2000 }, (t) => {
+    t.plan(2);
+
+    // TODO: assertions to check id & key
+
+    t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatAppUrl }`);
+
+    request(fzeOrchUrl, function(error, response, body) {
+      parseXml(body, function(err, result) {
+        t.ok(result, result); 
+      });
+    });
   });
 }
 
