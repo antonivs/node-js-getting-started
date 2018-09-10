@@ -28,35 +28,45 @@ test('responds to requests', (t) => {
   });
 });
 
+function fzeTestStatus(statusUrl, interval, callback) {
+  (function poll() {
+    request(fzeStatusUrl, function(error, response, body) {
+      parseXml(body, function(err, result) {
+        if (typeof(result.response.data[1].returnData) == 'undefined') {
+          setTimeout(poll, interval);
+        } else {
+          callback(result.response.data[1].returnData[0]);
+        }
+      });
+    });
+  })();
+}
+
 if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   const uatAppUrl = process.env.HEROKU_UAT_APP_WEB_URL;
   const fzeDeployId = process.env.FZE_DEPLOYMENT_ID;
   const fzeApiKey = process.env.FZE_API_KEY;
   const fzeOrchUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
-  test('uat environment sanity check', { timeout: 2000 }, (t) => {
+  test('functionize autonomous uat tests', { timeout: 300000 }, (t) => {
     t.plan(3);
 
-    // TODO: assertions to check id & key
+    // TODO: assertions to check presence of id & key?
 
     t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatAppUrl }`);
 
     request(fzeOrchUrl, function(error, response, body) {
       parseXml(body, function(err, result) {
-
-        // DEBUG
-        // t.ok(result, JSON.stringify(result));
-
         t.equal(result.response.status[0], "success", "Deployment launched");
         const fzeRunId = result.response.data[1].run_id[0];
         const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
 
-        request(fzeStatusUrl, function(error, response, body) {
-            parseXml(body, function(statusErr, statusResult) {
-              t.ok(statusResult, JSON.stringify(statusResult));
-              // t.equal(statusResult.status[0], "success", "Deployment ");
-            });
-        });
+        fzeTestStatus(fzeStatusUrl, 2000, function (testResults) {
+          t.equal(testResults.Status, "Completed", "Tests completed");
+          
+          t.comment("Tests passed: " + testResults.passed[0]);
+          t.comment("Tests failed: " + testResults.failure[0]);
+          t.comment("Test warnings: " + testResults.warning[0]);
       });
     });
   });
