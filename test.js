@@ -28,9 +28,9 @@ test('responds to requests', (t) => {
   });
 });
 
-function fzeTestStatus(statusUrl, interval, callback) {
+function fzeTestStatus(url, interval, callback) {
   (function poll() {
-    request(fzeStatusUrl, function(error, response, body) {
+    request(url, function(error, response, body) {
       parseXml(body, function(err, result) {
         if (typeof(result.response.data[1].returnData) == 'undefined') {
           setTimeout(poll, interval);
