@@ -60,27 +60,31 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   const fzeApiKey   = process.env.FZE_API_KEY;
   const fzeOrchUrl  = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
-  test('functionize autonomous uat tests', { timeout: 400000 }, (t) => {
+  test('functionize autonomous uat tests', { timeout: 600000 }, (t) => {
     t.plan(4);
     t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatAppUrl }`);
 
     request(fzeOrchUrl, function(error, response, body) {
       parseXml(body, function(err, result) {
         t.equal(result.response.status[0], "success", "Deployment launched");
+
+        t.comment("Waiting for Functionize tests to complete...");
+
         const fzeRunId = result.response.data[1].run_id[0];
         const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
 
         fzeTestStatus(fzeStatusUrl, t.comment, 6000, function (testResults) {
           if (testResults) {
+            t.comment("");
             t.equal(testResults.Status[0], "Completed", "Tests completed");
        
             failedTests = testResults.failure[0];
-            t.equal(failedTests, 0, "All Functionize tests passed");
+            t.equal(failedTests*1, 0, "No Functionize test failures");
 
             t.comment("Functionize Test Summary:");
-            t.comment("  Tests passed:  " + testResults.passed[0]);
-            t.comment("  Tests failed:  " + testResults.failure[0]);
-            t.comment("  Test warnings: " + testResults.warning[0]);
+            t.comment("- Tests passed:  " + testResults.passed[0]);
+            t.comment("- Tests failed:  " + testResults.failure[0]);
+            t.comment("- Test warnings: " + testResults.warning[0]);
           } else {
             t.fail("Deployment execution failed");
           }
