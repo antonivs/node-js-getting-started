@@ -28,7 +28,7 @@ test('responds to requests', (t) => {
   });
 });
 
-function fzeTestStatus(url, logger, interval, callback) {
+function fzeTestStatus(url, interval, callback) {
   (function poll() {
     request(url, function(error, response, body) {
       parseXml(body, function(err, result) {
@@ -40,13 +40,12 @@ function fzeTestStatus(url, logger, interval, callback) {
           const status = statusResult.Status[0];
 
           if (status === "Completed") {
-            callback(result.response.data[1].returnData[0]);
+            callback(null, result.response.data[1].returnData[0]);
           } else if (status === "PROCESSING") {
             process.stdout.write("."); 
             setTimeout(poll, interval);
           } else {
-            // TODO: Error
-            return callback(null);
+            return callback(new Error("Unrecognized test status: " + status));
           }
         }
       });
@@ -61,33 +60,32 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   const fzeOrchUrl  = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
   test('functionize autonomous uat tests', { timeout: 600000 }, (t) => {
-    t.plan(4);
+    t.plan(6);
     t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatAppUrl }`);
 
     request(fzeOrchUrl, function(error, response, body) {
       parseXml(body, function(err, result) {
-        t.equal(result.response.status[0], "success", "Deployment launched");
+        t.equal(result.response.status[0], "success", "Functionize deployment launched");
 
-        t.comment("Waiting for Functionize tests to complete...");
+        t.comment("Running Functionize tests...");
+        t.comment("-------1---------2---------3---------4---------5---------6---------7---------8---------9");
 
         const fzeRunId = result.response.data[1].run_id[0];
         const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
 
-        fzeTestStatus(fzeStatusUrl, t.comment, 6000, function (testResults) {
-          if (testResults) {
-            t.comment("");
-            t.equal(testResults.Status[0], "Completed", "Tests completed");
-       
-            failedTests = testResults.failure[0];
-            t.equal(failedTests*1, 0, "No Functionize test failures");
+        fzeTestStatus(fzeStatusUrl, 6000, function (err, testResults) {
+          t.comment("");
+          t.error(err);
+          t.ok(testResults, "Received test results");
+          t.equal(testResults.Status[0], "Completed", "Tests completed");
+     
+          failedTests = testResults.failure[0];
+          t.equal(failedTests*1, 0, "No Functionize test failures");
 
-            t.comment("Functionize Test Summary:");
-            t.comment("- Tests passed:  " + testResults.passed[0]);
-            t.comment("- Tests failed:  " + testResults.failure[0]);
-            t.comment("- Test warnings: " + testResults.warning[0]);
-          } else {
-            t.fail("Deployment execution failed");
-          }
+          t.comment("Functionize Test Summary:");
+          t.comment("- Tests passed:  " + testResults.passed[0]);
+          t.comment("- Tests failed:  " + testResults.failure[0]);
+          t.comment("- Test warnings: " + testResults.warning[0]);
         });
       });
     });
