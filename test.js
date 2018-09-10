@@ -35,7 +35,17 @@ function fzeTestStatus(url, interval, callback) {
         if (typeof(result.response.data[1].returnData) == 'undefined') {
           setTimeout(poll, interval);
         } else {
-          callback(result.response.data[1].returnData[0]);
+          const statusResult = result.response.data[1].returnData[0];
+          const status = statusResult.Status[0];
+
+          if (status === "Completed") {
+            callback(result.response.data[1].returnData[0]);
+          } else if (status === "PROCESSING") {
+            setTimeout(poll, interval);
+          } else {
+            // TODO: Error
+            return callback(null);
+          }
         }
       });
     });
@@ -62,11 +72,15 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
         const fzeStatusUrl = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=status&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }&run_id=${ fzeRunId }`;
 
         fzeTestStatus(fzeStatusUrl, 2000, function (testResults) {
-          t.equal(testResults.Status, "Completed", "Tests completed");
-          
-          t.comment("Tests passed: " + testResults.passed[0]);
-          t.comment("Tests failed: " + testResults.failure[0]);
-          t.comment("Test warnings: " + testResults.warning[0]);
+          if (testResult) {
+            t.equal(testResults.Status[0], "Completed", "Tests completed");
+        
+            t.comment("Tests passed: " + testResults.passed[0]);
+            t.comment("Tests failed: " + testResults.failure[0]);
+            t.comment("Test warnings: " + testResults.warning[0]);
+          } else {
+            t.fail("Deployment execution failed");
+          }
         });
       });
     });
