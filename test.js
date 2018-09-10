@@ -67,6 +67,7 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
           t.comment("Tests passed: " + testResults.passed[0]);
           t.comment("Tests failed: " + testResults.failure[0]);
           t.comment("Test warnings: " + testResults.warning[0]);
+        });
       });
     });
   });
