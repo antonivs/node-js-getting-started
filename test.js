@@ -33,7 +33,7 @@ function fzeTestStatus(url, logger, interval, callback) {
     request(url, function(error, response, body) {
       parseXml(body, function(err, result) {
         if (typeof(result.response.data[1].returnData) == 'undefined') {
-          logger("."); 
+          process.stdout.write("."); 
           setTimeout(poll, interval);
         } else {
           const statusResult = result.response.data[1].returnData[0];
@@ -42,7 +42,7 @@ function fzeTestStatus(url, logger, interval, callback) {
           if (status === "Completed") {
             callback(result.response.data[1].returnData[0]);
           } else if (status === "PROCESSING") {
-            logger("."); 
+            process.stdout.write("."); 
             setTimeout(poll, interval);
           } else {
             // TODO: Error
@@ -60,11 +60,8 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
   const fzeApiKey   = process.env.FZE_API_KEY;
   const fzeOrchUrl  = `https://app.functionize.com/api/v1?method=processDeployment&actionFor=execute&deploymentid=${ fzeDeployId }&apiKey=${ fzeApiKey }`;
 
-  test('functionize autonomous uat tests', { timeout: 360000 }, (t) => {
-    t.plan(3);
-
-    // TODO: assertions to check presence of id & key?
-
+  test('functionize autonomous uat tests', { timeout: 400000 }, (t) => {
+    t.plan(4);
     t.ok(process.env.HEROKU_UAT_APP_WEB_URL, `UAT URL: ${ uatAppUrl }`);
 
     request(fzeOrchUrl, function(error, response, body) {
@@ -76,10 +73,14 @@ if (typeof(process.env.HEROKU_UAT_APP_WEB_URL) !== 'undefined') {
         fzeTestStatus(fzeStatusUrl, t.comment, 6000, function (testResults) {
           if (testResults) {
             t.equal(testResults.Status[0], "Completed", "Tests completed");
-        
-            t.comment("Tests passed: " + testResults.passed[0]);
-            t.comment("Tests failed: " + testResults.failure[0]);
-            t.comment("Test warnings: " + testResults.warning[0]);
+       
+            failedTests = testResults.failure[0];
+            t.equal(failedTests, 0, "All Functionize tests passed");
+
+            t.comment("Functionize Test Summary:
+            t.comment("  Tests passed:  " + testResults.passed[0]);
+            t.comment("  Tests failed:  " + testResults.failure[0]);
+            t.comment("  Test warnings: " + testResults.warning[0]);
           } else {
             t.fail("Deployment execution failed");
           }
